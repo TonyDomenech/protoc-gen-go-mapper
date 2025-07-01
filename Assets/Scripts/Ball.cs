@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    public float speed = 5f;
+    // Speed of the ball. Reduced so the game is a bit slower.
+    public float speed = 3f;
     private Rigidbody2D rb;
 
     void Start()
