@@ -15,6 +15,12 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const paddleWidth = 10, paddleHeight = 100, ballSize = 10;
+const vsAI = confirm('¿Jugar contra la máquina?');
+let difficulty = 3;
+if(vsAI){
+  const d = parseInt(prompt('Elige dificultad 1-5', '3'));
+  if(d>=1 && d<=5) difficulty = d;
+}
 const left = { x: 10, y: canvas.height/2 - paddleHeight/2, speed: 5 };
 const right = { x: canvas.width - paddleWidth - 10, y: canvas.height/2 - paddleHeight/2, speed: 5 };
 const ball = { x: 0, y: 0, vx: 4, vy: 4 };
@@ -31,8 +37,15 @@ function resetBall(dir) {
 function update() {
   if(keys['w'] && left.y>0) left.y -= left.speed;
   if(keys['s'] && left.y<canvas.height-paddleHeight) left.y += left.speed;
-  if(keys['ArrowUp'] && right.y>0) right.y -= right.speed;
-  if(keys['ArrowDown'] && right.y<canvas.height-paddleHeight) right.y += right.speed;
+  if(vsAI){
+    const mid = right.y + paddleHeight/2;
+    if(mid < ball.y) right.y += right.speed * difficulty * 0.5;
+    else if(mid > ball.y) right.y -= right.speed * difficulty * 0.5;
+    right.y = Math.max(0, Math.min(canvas.height-paddleHeight, right.y));
+  } else {
+    if(keys['ArrowUp'] && right.y>0) right.y -= right.speed;
+    if(keys['ArrowDown'] && right.y<canvas.height-paddleHeight) right.y += right.speed;
+  }
   ball.x += ball.vx; ball.y += ball.vy;
   if(ball.y<0 || ball.y>canvas.height-ballSize) ball.vy *= -1;
   if(ball.x<=left.x+paddleWidth && ball.y+ballSize>=left.y && ball.y<=left.y+paddleHeight) ball.vx = Math.abs(ball.vx);
