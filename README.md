@@ -2,9 +2,13 @@
 
 Este repositorio contiene un ejemplo de juego de Ping Pong realizado con Unity.
 Si solo quieres probarlo r\u00e1pidamente, abre `html/index.html` en tu navegador
-y podr\u00e1s jugar inmediatamente sin instalar nada. Al cargar la p\u00e1gina
-podr\u00e1s elegir si juegas contra otro jugador o contra la m\u00e1quina con un
-nivel de dificultad de 1 a 5. El jugador 1 aparece en azul y el jugador 2 en rojo.
+y podr\u00e1s jugar inmediatamente sin instalar nada. Aparecer\u00e1 un men\u00fa
+inicial donde elegir si juegas contra otra persona en local o contra la m\u00e1quina.
+Si eliges la m\u00e1quina dispondr\u00e1s de cinco dificultades: F\u00e1cil, Medio,
+Avanzado, Dif\u00edcil e Imposible. El jugador 1 aparece en azul y el jugador 2 en rojo.
+El campo de juego es m\u00e1s ancho para facilitar la reacci\u00f3n y, tras cada
+punto, la pelota se queda dos segundos en el centro antes de ponerse en
+marcha de nuevo.
 
 ## Configuraci\u00f3n en Unity
 

@@ -58,4 +58,23 @@ public class GameManager : MonoBehaviour
             leftScoreText.text = leftScore.ToString();
         }
     }
+
+    // Returns the ball speed depending on the selected difficulty.
+    public float GetBallSpeed(float defaultSpeed)
+    {
+        switch (Mathf.Clamp(difficulty, 1, 5))
+        {
+            case 1: // Facil
+                return 2f;
+            case 2: // Medio
+                return 2.5f;
+            case 3: // Avanzado
+                return 3f;
+            case 4: // Dificil
+                return 3.5f;
+            case 5: // Imposible
+                return 4f;
+        }
+        return defaultSpeed;
+    }
 }
