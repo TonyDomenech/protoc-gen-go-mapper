@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ping Pong</title>
+<style>
+  body { text-align: center; background: #222; color: #fff; font-family: sans-serif; }
+  canvas { background: #000; display: none; margin: 0 auto; }
+  #menu { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<h1>Ping Pong</h1>
+<div id="menu">
+  <p>Modo de juego:</p>
+  <label><input type="radio" name="mode" value="pvp" checked>Jugador vs Jugador</label><br>
+  <label><input type="radio" name="mode" value="ai">Jugador vs Máquina</label>
+  <div id="diff" style="display:none;">
+    <label>Dificultad:
+      <select id="diffSelect">
+        <option value="1">Fácil</option>
+        <option value="2">Medio</option>
+        <option value="3" selected>Avanzado</option>
+        <option value="4">Difícil</option>
+        <option value="5">Imposible</option>
+      </select>
+    </label>
+  </div>
+  <button id="start">Jugar</button>
+</div>
+<canvas id="game" width="1000" height="600"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const paddleWidth = 10, paddleHeight = 100, ballSize = 10;
+const modeRadios = document.querySelectorAll('input[name=mode]');
+const diffDiv = document.getElementById('diff');
+const diffSelect = document.getElementById('diffSelect');
+const startBtn = document.getElementById('start');
+
+modeRadios.forEach(r => r.addEventListener('change', () => {
+  diffDiv.style.display = document.querySelector('input[name=mode]:checked').value === 'ai' ? 'block' : 'none';
+}));
+
+let vsAI = false;
+let difficulty = 3;
+
+startBtn.addEventListener('click', () => {
+  vsAI = document.querySelector('input[name=mode]:checked').value === 'ai';
+  difficulty = parseInt(diffSelect.value);
+  document.getElementById('menu').style.display = 'none';
+  canvas.style.display = 'block';
+  initGame();
+  requestAnimationFrame(loop);
+});
+
+const left = { x: 10, y: 0, speed: 7, color: 'blue' };
+const right = { x: canvas.width - paddleWidth - 10, y: 0, speed: 7, color: 'red' };
+const ball = { x: 0, y: 0, vx: 0, vy: 0 };
+let leftScore = 0, rightScore = 0;
+let waiting = false;
+const keys = {};
+const winningScore = 5;
+let paused = false;
+let gameOver = false;
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if(e.key==='p' || e.key===' '){
+    paused = !paused;
+  }
+  if(gameOver && e.key==='r'){
+    initGame();
+    gameOver = false;
+  }
+});
+document.addEventListener('keyup', e => keys[e.key] = false);
+
+function initGame(){
+  left.y = canvas.height/2 - paddleHeight/2;
+  right.y = canvas.height/2 - paddleHeight/2;
+  leftScore = rightScore = 0;
+  paused = false;
+  gameOver = false;
+  resetBall();
+}
+
+const ballSpeed = [2,2.5,3,3.5,4];
+const aiSpeed = [3,4,5,6,7];
+const aiError = [60,40,20,10,0];
+
+function resetBall(dir) {
+  ball.x = canvas.width/2 - ballSize/2;
+  ball.y = canvas.height/2 - ballSize/2;
+  ball.vx = 0;
+  ball.vy = 0;
+  waiting = true;
+  setTimeout(() => {
+    const speed = ballSpeed[difficulty-1];
+    const direction = dir || (Math.random() < 0.5 ? -1 : 1);
+    ball.vx = direction * speed;
+    ball.vy = (Math.random()*2-1) * speed;
+    waiting = false;
+  }, 2000);
+}
+
+function update() {
+  if(paused || gameOver) return;
+  if(keys['w'] && left.y>0) left.y -= left.speed;
+  if(keys['s'] && left.y<canvas.height-paddleHeight) left.y += left.speed;
+  if(vsAI){
+    const target = ball.y + (Math.random()*2-1) * aiError[difficulty-1];
+    const mid = right.y + paddleHeight/2;
+    if(mid < target) right.y += aiSpeed[difficulty-1];
+    else if(mid > target) right.y -= aiSpeed[difficulty-1];
+    right.y = Math.max(0, Math.min(canvas.height-paddleHeight, right.y));
+  } else {
+    if(keys['ArrowUp'] && right.y>0) right.y -= right.speed;
+    if(keys['ArrowDown'] && right.y<canvas.height-paddleHeight) right.y += right.speed;
+  }
+  if(!waiting){
+    ball.x += ball.vx; ball.y += ball.vy;
+  }
+  if(ball.y<0 || ball.y>canvas.height-ballSize) ball.vy *= -1;
+  if(ball.x<=left.x+paddleWidth && ball.y+ballSize>=left.y && ball.y<=left.y+paddleHeight) ball.vx = Math.abs(ball.vx);
+  if(ball.x+ballSize>=right.x && ball.y+ballSize>=right.y && ball.y<=right.y+paddleHeight) ball.vx = -Math.abs(ball.vx);
+  if(ball.x<0){
+    rightScore++;
+    if(rightScore>=winningScore){ gameOver=true; }
+    resetBall(1);
+  }
+  else if(ball.x>canvas.width-ballSize){
+    leftScore++;
+    if(leftScore>=winningScore){ gameOver=true; }
+    resetBall(-1);
+  }
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = left.color;
+  ctx.fillRect(left.x,left.y,paddleWidth,paddleHeight);
+  ctx.fillStyle = right.color;
+  ctx.fillRect(right.x,right.y,paddleWidth,paddleHeight);
+  ctx.fillStyle = 'white';
+  ctx.fillRect(ball.x,ball.y,ballSize,ballSize);
+  ctx.font='24px sans-serif';
+  ctx.fillText(leftScore, canvas.width/4, 30);
+  ctx.fillText(rightScore, canvas.width*3/4, 30);
+  ctx.font='18px sans-serif';
+  ctx.fillText('P pausa / espacio. R reinicia tras ganar.', canvas.width/2-160, canvas.height-10);
+  if(gameOver){
+    ctx.fillText(leftScore>rightScore ? 'Gana Jugador 1' : 'Gana Jugador 2', canvas.width/2-80, canvas.height/2);
+  }
+}
+
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
