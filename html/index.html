@@ -7,6 +7,7 @@
   body { text-align: center; background: #222; color: #fff; font-family: sans-serif; }
   canvas { background: #000; display: none; margin: 0 auto; }
   #menu { margin-bottom: 20px; }
+  #winner { font-size: 32px; margin: 20px; }
 </style>
 </head>
 <body>
@@ -29,6 +30,8 @@
   <button id="start">Jugar</button>
 </div>
 <canvas id="game" width="1000" height="600"></canvas>
+<div id="winner" style="display:none;"></div>
+<button id="restart" style="display:none;">Reiniciar</button>
 <script>
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -37,6 +40,9 @@ const modeRadios = document.querySelectorAll('input[name=mode]');
 const diffDiv = document.getElementById('diff');
 const diffSelect = document.getElementById('diffSelect');
 const startBtn = document.getElementById('start');
+const winnerDiv = document.getElementById('winner');
+const restartBtn = document.getElementById('restart');
+const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
 
 modeRadios.forEach(r => r.addEventListener('change', () => {
   diffDiv.style.display = document.querySelector('input[name=mode]:checked').value === 'ai' ? 'block' : 'none';
@@ -44,6 +50,16 @@ modeRadios.forEach(r => r.addEventListener('change', () => {
 
 let vsAI = false;
 let difficulty = 3;
+const scoreToWin = 5;
+
+function beep(freq, dur){
+  const osc = audioCtx.createOscillator();
+  osc.type = 'square';
+  osc.frequency.value = freq;
+  osc.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + dur/1000);
+}
 
 startBtn.addEventListener('click', () => {
   vsAI = document.querySelector('input[name=mode]:checked').value === 'ai';
@@ -54,11 +70,20 @@ startBtn.addEventListener('click', () => {
   requestAnimationFrame(loop);
 });
 
+restartBtn.addEventListener('click', () => {
+  winnerDiv.style.display = 'none';
+  restartBtn.style.display = 'none';
+  document.getElementById('menu').style.display = 'block';
+  gameOver = true;
+});
+
 const left = { x: 10, y: 0, speed: 7, color: 'blue' };
 const right = { x: canvas.width - paddleWidth - 10, y: 0, speed: 7, color: 'red' };
 const ball = { x: 0, y: 0, vx: 0, vy: 0 };
 let leftScore = 0, rightScore = 0;
 let waiting = false;
+let gameOver = false;
+let currentSpeed = 0;
 const keys = {};
 document.addEventListener('keydown', e => keys[e.key] = true);
 document.addEventListener('keyup', e => keys[e.key] = false);
@@ -67,6 +92,7 @@ function initGame(){
   left.y = canvas.height/2 - paddleHeight/2;
   right.y = canvas.height/2 - paddleHeight/2;
   leftScore = rightScore = 0;
+  gameOver = false;
   resetBall();
 }
 
@@ -81,10 +107,11 @@ function resetBall(dir) {
   ball.vy = 0;
   waiting = true;
   setTimeout(() => {
-    const speed = ballSpeed[difficulty-1];
+    currentSpeed = ballSpeed[difficulty-1];
     const direction = dir || (Math.random() < 0.5 ? -1 : 1);
-    ball.vx = direction * speed;
-    ball.vy = (Math.random()*2-1) * speed;
+    ball.vx = direction * currentSpeed;
+    ball.vy = (Math.random()*2-1) * currentSpeed;
+    beep(800, 100);
     waiting = false;
   }, 2000);
 }
@@ -105,11 +132,34 @@ function update() {
   if(!waiting){
     ball.x += ball.vx; ball.y += ball.vy;
   }
-  if(ball.y<0 || ball.y>canvas.height-ballSize) ball.vy *= -1;
-  if(ball.x<=left.x+paddleWidth && ball.y+ballSize>=left.y && ball.y<=left.y+paddleHeight) ball.vx = Math.abs(ball.vx);
-  if(ball.x+ballSize>=right.x && ball.y+ballSize>=right.y && ball.y<=right.y+paddleHeight) ball.vx = -Math.abs(ball.vx);
-  if(ball.x<0){ rightScore++; resetBall(1); }
-  else if(ball.x>canvas.width-ballSize){ leftScore++; resetBall(-1); }
+  if(ball.y<0 || ball.y>canvas.height-ballSize) {
+    ball.vy *= -1; beep(400,50);
+  }
+  if(ball.x<=left.x+paddleWidth && ball.y+ballSize>=left.y && ball.y<=left.y+paddleHeight){
+    ball.vx = Math.abs(ball.vx); currentSpeed *= 1.05; ball.vx = Math.sign(ball.vx)*currentSpeed; beep(600,50);
+  }
+  if(ball.x+ballSize>=right.x && ball.y+ballSize>=right.y && ball.y<=right.y+paddleHeight){
+    ball.vx = -Math.abs(ball.vx); currentSpeed *= 1.05; ball.vx = Math.sign(ball.vx)*currentSpeed; beep(600,50);
+  }
+  if(ball.x<0){
+    rightScore++; beep(200,150);
+    if(!checkWinner()) resetBall(1);
+  } else if(ball.x>canvas.width-ballSize){
+    leftScore++; beep(200,150);
+    if(!checkWinner()) resetBall(-1);
+  }
+}
+
+function checkWinner(){
+  if(leftScore>=scoreToWin || rightScore>=scoreToWin){
+    winnerDiv.textContent = leftScore>rightScore ? 'Gana Azul' : 'Gana Rojo';
+    winnerDiv.style.display = 'block';
+    restartBtn.style.display = 'block';
+    canvas.style.display = 'none';
+    gameOver = true;
+    return true;
+  }
+  return false;
 }
 
 function draw() {
@@ -128,7 +178,7 @@ function draw() {
 function loop(){
   update();
   draw();
-  requestAnimationFrame(loop);
+  if(!gameOver) requestAnimationFrame(loop);
 }
 </script>
 </body>

@@ -7,6 +7,11 @@ public class GameManager : MonoBehaviour
 
     public Text leftScoreText;
     public Text rightScoreText;
+    public Text winText;
+    public Ball ball;
+
+    [Header("Puntuación")]
+    public int scoreLimit = 5;
 
     [Header("Modo de Juego")]
     public bool vsAI = false;
@@ -16,6 +21,9 @@ public class GameManager : MonoBehaviour
 
     private int leftScore;
     private int rightScore;
+    private bool gameOver;
+
+    public bool IsGameOver => gameOver;
 
     void Start()
     {
@@ -31,6 +39,11 @@ public class GameManager : MonoBehaviour
                 aiPaddle.difficulty = Mathf.Clamp(difficulty, 1, 5);
             }
         }
+
+        leftScore = rightScore = 0;
+        gameOver = false;
+        if (winText != null)
+            winText.gameObject.SetActive(false);
     }
 
     void Awake()
@@ -57,6 +70,35 @@ public class GameManager : MonoBehaviour
             leftScore++;
             leftScoreText.text = leftScore.ToString();
         }
+
+        if (leftScore >= scoreLimit || rightScore >= scoreLimit)
+        {
+            EndGame();
+        }
+    }
+
+    void EndGame()
+    {
+        gameOver = true;
+        if (ball != null)
+            ball.Stop();
+        if (winText != null)
+        {
+            winText.text = leftScore > rightScore ? "Gana Azul" : "Gana Rojo";
+            winText.gameObject.SetActive(true);
+        }
+    }
+
+    public void ResetGame()
+    {
+        leftScore = rightScore = 0;
+        leftScoreText.text = "0";
+        rightScoreText.text = "0";
+        gameOver = false;
+        if (winText != null)
+            winText.gameObject.SetActive(false);
+        if (ball != null)
+            ball.ResetAndLaunch();
     }
 
     // Returns the ball speed depending on the selected difficulty.

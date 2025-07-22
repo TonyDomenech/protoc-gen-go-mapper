@@ -9,6 +9,7 @@ Avanzado, Dif\u00edcil e Imposible. El jugador 1 aparece en azul y el jugador 2 
 El campo de juego es m\u00e1s ancho para facilitar la reacci\u00f3n y, tras cada
 punto, la pelota se queda dos segundos en el centro antes de ponerse en
 marcha de nuevo.
+La partida termina cuando un jugador alcanza cinco tantos. Aparece un mensaje con el ganador y puedes reiniciar sin recargar la página. Cada vez que la pelota toca una paleta su velocidad aumenta ligeramente y se reproducen pequeños sonidos al golpear o marcar.
 
 ## Configuraci\u00f3n en Unity
 
