@@ -15,6 +15,37 @@ protoc-gen-go-mapper is a compiler-style plugin for protoc that generates bidire
 - **Extensible**: Easy to add custom converters via the registry
 - **No runtime reflection**: Pure Go code generation
 
+## Dependencies
+
+### Required Dependencies
+
+- **gopkg.in/yaml.v3** v3.0.1 - YAML configuration parsing
+- **google.golang.org/protobuf** v1.36.11 - Protocol Buffers support
+
+### Indirect Dependencies
+
+- **github.com/google/uuid** v1.6.0 - UUID parsing and generation
+- **github.com/jackc/pgx/v5** v5.10.0 - PostgreSQL driver and types
+
+### Go Version
+
+- **Go 1.25.0** or higher
+
+### Installation
+
+To install the required dependencies:
+
+```bash
+go mod download
+```
+
+To update dependencies:
+
+```bash
+go get -u ./...
+go mod tidy
+```
+
 ## Installation
 
 ### From GitHub
