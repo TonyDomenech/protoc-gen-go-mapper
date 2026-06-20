@@ -44,6 +44,14 @@ db_package: your-project/internal/db
 package:
   proto: internal/gen
   db: internal/db
+type_mappings:
+  User: DbUser
+  CreateUserRequest: CreateUserParams
+  UpdateUserRequest: UpdateUserParams
+messages:
+  - User
+  - CreateUserRequest
+  - UpdateUserRequest
 ```
 
 2. Define your protobuf message:
@@ -117,6 +125,32 @@ db_package: your-project/internal/db
 | `db_package` | string | Yes | Go package path for database models |
 | `package.proto` | string | Yes | Go package for generated protobuf code |
 | `package.db` | string | Yes | Go package for database models |
+| `type_mappings` | object | No | Custom type mappings between proto messages and DB models |
+| `messages` | array | No | List of proto messages to generate mappers for |
+
+#### Type Mappings
+
+The `type_mappings` section allows you to specify custom mappings between protobuf message types and database model types:
+
+```yaml
+type_mappings:
+  User: DbUser                    # Proto message -> DB model
+  CreateUserRequest: CreateUserParams  # Proto request -> DB params
+  UpdateUserRequest: UpdateUserParams
+```
+
+#### Messages
+
+The `messages` section specifies which protobuf messages should have mapping functions generated:
+
+```yaml
+messages:
+  - User
+  - CreateUserRequest
+  - UpdateUserRequest
+```
+
+If `messages` is not specified, all messages in the proto file will be processed.
 
 ## Architecture
 
