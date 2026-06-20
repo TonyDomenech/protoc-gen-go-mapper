@@ -4,30 +4,28 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-A protoc plugin that generates type-safe mapping functions between protobuf messages and database models.
+---
 
-## Overview
+## 🚀 Type-Safe Protobuf ↔ Database Mapper
 
-protoc-gen-go-mapper is a compiler-style plugin for protoc that generates bidirectional mapping functions between protobuf messages and database models (sqlc, pgx, database/sql). It uses a converter registry with priority-based resolution to handle type conversions deterministically.
+A powerful protoc plugin that generates **type-safe**, **bidirectional** mapping functions between protobuf messages and database models (SQLC, PGX, database/sql).
 
-## Features
+### ✨ Key Features
 
-- **Type-safe mappings**: Generated functions ensure compile-time type safety
-- **Bidirectional**: Generates both Proto→DB and DB→Proto functions
-- **Deterministic output**: Field order preserved by proto field numbers
-- **Build-time validation**: All converter resolution happens during generation
-- **Extensible**: Easy to add custom converters via the registry
-- **No runtime reflection**: Pure Go code generation
-- **Zero-config mode**: Automatic type detection with generic converters
-- **Self-contained**: Generated code includes inline converters, no external dependencies
+- 🔒 **Type-Safe** - Compile-time type safety with no runtime reflection
+- 🔄 **Bidirectional** - Auto-generates both Proto→DB and DB→Proto functions
+- ⚡ **Zero-Config** - Automatic type detection with generic converters
+- 🎯 **Deterministic** - Field order preserved by proto field numbers
+- 🛠️ **Extensible** - Easy to add custom converters via registry
+- 📦 **Self-Contained** - Generated code includes inline converters, no external deps
 
-## Table of Contents
+---
 
-- [Overview](#overview)
-- [Features](#features)
-- [Dependencies](#dependencies)
-- [Installation](#installation)
+## 📋 Table of Contents
+
 - [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Dependencies](#dependencies)
 - [Usage](#usage)
 - [Advanced Configuration](#advanced-configuration)
 - [Examples](#examples)
@@ -36,64 +34,13 @@ protoc-gen-go-mapper is a compiler-style plugin for protoc that generates bidire
 - [Support](#support)
 - [License](#license)
 
-## Dependencies
+---
 
-### Required Dependencies
+## 🚀 Quick Start
 
-- **gopkg.in/yaml.v3** v3.0.1 - YAML configuration parsing
-- **google.golang.org/protobuf** v1.36.11 - Protocol Buffers support
-- **github.com/jackc/pgx/v5** v5.10.0 - PostgreSQL driver and types (for SQLC/PGX support)
+Get up and running in 4 simple steps:
 
-### Database-Specific Dependencies
-
-The generated code works with the following database libraries (not required by the plugin itself):
-
-- **SQLC** - SQL query code generator (for SQLC mode)
-- **github.com/jackc/pgx/v5** - PostgreSQL driver (for PGX mode)
-- **database/sql** - Standard database SQL interface (for database_sql mode)
-
-### Indirect Dependencies
-
-- **github.com/google/uuid** v1.6.0 - UUID parsing and generation
-
-### Go Version
-
-- **Go 1.25.0** or higher
-
-### Installation
-
-To install the required dependencies:
-
-```bash
-go mod download
-```
-
-To update dependencies:
-
-```bash
-go get -u ./...
-go mod tidy
-```
-
-## Installation
-
-### Quick Install
-
-```bash
-go install github.com/jwart212/protoc-gen-go-mapper/cmd/protoc-gen-go-mapper@latest
-```
-
-### From Source
-
-```bash
-git clone https://github.com/jwart212/protoc-gen-go-mapper.git
-cd protoc-gen-go-mapper
-go install ./cmd/protoc-gen-go-mapper
-```
-
-## Quick Start
-
-### 1. Create a simple mapper.yaml
+### 1️⃣ Create `mapper.yaml`
 
 ```yaml
 version: v1
@@ -108,7 +55,7 @@ messages:
   - User
 ```
 
-### 2. Define your protobuf message
+### 2️⃣ Define your protobuf message
 
 ```protobuf
 syntax = "proto3";
@@ -124,7 +71,7 @@ message User {
 }
 ```
 
-### 3. Run protoc
+### 3️⃣ Run protoc
 
 ```bash
 protoc \
@@ -139,7 +86,7 @@ protoc \
   internal/proto/user.proto
 ```
 
-### 4. Use the generated functions
+### 4️⃣ Use the generated functions
 
 ```go
 // Convert DB model to protobuf
@@ -149,9 +96,70 @@ protoUser := ToProtoUser(dbUser)
 dbUser := ToDBUser(protoUser)
 ```
 
-## Usage
+---
 
-### Advanced Configuration
+## 📦 Installation
+
+### ⚡ Quick Install
+
+```bash
+go install github.com/jwart212/protoc-gen-go-mapper/cmd/protoc-gen-go-mapper@latest
+```
+
+### 🔧 From Source
+
+```bash
+git clone https://github.com/jwart212/protoc-gen-go-mapper.git
+cd protoc-gen-go-mapper
+go install ./cmd/protoc-gen-go-mapper
+```
+
+---
+
+## 📚 Dependencies
+
+### Required Dependencies
+
+| Package | Version | Description |
+|---------|---------|-------------|
+| gopkg.in/yaml.v3 | v3.0.1 | YAML configuration parsing |
+| google.golang.org/protobuf | v1.36.11 | Protocol Buffers support |
+| github.com/jackc/pgx/v5 | v5.10.0 | PostgreSQL driver and types |
+
+### Database-Specific Dependencies
+
+The generated code works with the following database libraries:
+
+| Library | Mode | Description |
+|---------|------|-------------|
+| SQLC | `sqlc` | SQL query code generator |
+| github.com/jackc/pgx/v5 | `pgx` | PostgreSQL driver |
+| database/sql | `database_sql` | Standard database SQL interface |
+
+### Indirect Dependencies
+
+- **github.com/google/uuid** v1.6.0 - UUID parsing and generation
+
+### Go Version
+
+**Go 1.25.0** or higher required
+
+### Dependency Management
+
+```bash
+# Install dependencies
+go mod download
+
+# Update dependencies
+go get -u ./...
+go mod tidy
+```
+
+---
+
+## 💡 Usage
+
+### ⚙️ Advanced Configuration
 
 #### mapper.yaml Configuration Reference
 
@@ -172,12 +180,12 @@ type_mappings:
   CreateUserRequest: CreateUserParams
   UpdateUserRequest: UpdateUserParams
 
-# Response type mappings for list responses (proto message -> SQLC Row type)
+# Response type mappings for list responses
 response_type_mappings:
   ListUserResponse: ListUsersRow
   ListProductResponse: ListProductsRow
 
-# Type aliases for reuse (optional, for custom conversions)
+# Type aliases for reuse (optional)
 type_aliases:
   UUIDField:
     proto_type: string
@@ -187,18 +195,16 @@ type_aliases:
     to_db_expr: "newUUIDFromString({protoField})"
 
 # Type-based field conversions (optional - remove to use generic converters)
-# When omitted, the plugin uses built-in generic converters for common types
 type_conversions:
-  # Non-nullable UUID fields with pattern matching
+  # Custom decimal conversion
   - proto_type: string
-    db_type: pgtype.UUID
+    db_type: pgtype.Numeric
     is_optional: false
-    match_field_pattern: "^.*Id$"
-    to_proto_expr: "newStringFromUUIDNonPtr({variable}.{dbField})"
-    to_db_expr: "newUUIDFromString({protoField})"
+    to_proto_expr: "decimalToString({variable}.{dbField})"
+    to_db_expr: "stringToDecimal({protoField})"
     priority: 90
 
-# Response field patterns (configurable)
+# Response field patterns
 response_patterns:
   data_field: "data"
   total_field: "total"
@@ -207,7 +213,7 @@ response_patterns:
   response_suffix: "Response"
   skip_fields: ["DeletedAt", "DeletedBy"]
 
-# Pointer handling strategies (optional)
+# Pointer handling strategies
 pointer_settings:
   default_strategy: "strict"
   field_strategies:
@@ -260,7 +266,9 @@ field_handlers:
 | `messages` | array | ❌ No | List of proto messages to generate mappers for |
 | `field_handlers` | array | ❌ No | Special field handling rules |
 
-#### Generic Converters (Zero-Config Mode)
+---
+
+### ⚡ Generic Converters (Zero-Config Mode)
 
 When `type_conversions` is omitted or empty, the plugin automatically uses built-in generic converters for common types:
 
@@ -286,7 +294,9 @@ messages:
 
 This minimal configuration will generate correct mappings for UUID, Timestamp, and Text fields automatically.
 
-#### Custom Type Conversions
+---
+
+### 🔧 Custom Type Conversions
 
 For custom type conversions not covered by generic converters, use `type_conversions`:
 
@@ -319,7 +329,9 @@ type_conversions:
 - `to_db_expr`: Expression for Proto→DB conversion
 - `priority`: Priority for matching (higher = more specific)
 
-#### Field Handlers
+---
+
+### 🎯 Field Handlers
 
 Field handlers handle special cases like type assertions and default values:
 
@@ -355,7 +367,9 @@ field_handlers:
 - `default_value`: Sets a default value for a field
 - `skip`: Skips the field during mapping
 
-#### Response Patterns
+---
+
+### 📊 Response Patterns
 
 Configure response helper generation for list responses:
 
@@ -371,7 +385,9 @@ response_patterns:
     - DeletedBy
 ```
 
-#### Pointer Settings
+---
+
+### 🔀 Pointer Settings
 
 Control how nullable fields are handled:
 
@@ -389,7 +405,33 @@ pointer_settings:
 - `lenient`: Allow null values for optional fields
 - `omit`: Skip field if value is null
 
-#### Example mapper.yaml (Advanced Example)
+---
+
+### 🗄️ Database Types
+
+The plugin supports three database backends:
+
+**SQLC (PostgreSQL with pgtype):**
+```yaml
+database: sqlc
+db_package: your-project/internal/postgres/sqlc
+```
+
+**PGX:**
+```yaml
+database: pgx
+db_package: your-project/internal/pgx
+```
+
+**database/sql:**
+```yaml
+database: database_sql
+db_package: your-project/internal/db
+```
+
+---
+
+### 📝 Example mapper.yaml (Advanced Example)
 
 Here's a detailed breakdown of the example configuration from `examples/advanced/internal/proto/mapper.yaml`:
 
