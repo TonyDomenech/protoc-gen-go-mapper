@@ -25,7 +25,6 @@ go test ./...
 This project follows:
 - [Effective Go](https://go.dev/doc/effective_go)
 - [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- Project-specific rules in `.windsurf/rules/rules.md`
 
 ## Submitting Changes
 
