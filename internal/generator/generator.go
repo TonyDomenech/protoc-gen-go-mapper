@@ -218,7 +218,11 @@ func (g *Generator) Generate(msg *schema.Message, protoToDB, dbToProto *graph.Ma
 				continue
 				// Text fields (string <-> pgtype.Text)
 			} else if protoFieldType == "string" && dbFieldType == "pgtype.Text" {
-				code += fmt.Sprintf("\t\t%s: ConvertTextToDB(src.%s),\n", dbFieldName, protoFieldName)
+				if field.Optional {
+					code += fmt.Sprintf("\t\t%s: ConvertTextToDB(src.%s),\n", dbFieldName, protoFieldName)
+				} else {
+					code += fmt.Sprintf("\t\t%s: ConvertTextToDBNonPtr(src.%s),\n", dbFieldName, protoFieldName)
+				}
 				continue
 			}
 		}

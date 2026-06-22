@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+
+package pos.supplier.v1;
+
+option go_package = "./internal/gen/supplierspb";
+
+
+import "google/protobuf/timestamp.proto";
+
+service SupplierService {
+    rpc CreateSupplier(CreateSupplierRequest)
+        returns (SupplierResponse);
+    
+    rpc UpdateSupplier(UpdateSupplierRequest)
+        returns (SupplierResponse);
+
+    rpc DeleteSupplier(DeleteSupplierRequest)
+        returns (SupplierResponse);
+    
+    rpc RestoreSupplier(RestoreSupplierRequest)
+        returns (SupplierResponse);
+    
+    rpc GetSupplier(GetSupplierRequest)
+        returns (SupplierResponse);
+    
+    rpc ListSupplier(ListSupplierRequest)
+        returns (SupplierResponse);
+
+    rpc GetSupplierBycode(GetSupplierByCodeRequest)
+        returns (SupplierResponse);
+}
+
+message Suppliers {
+    string id = 1;
+
+    string tenant_id = 2;
+
+    string code = 3;
+
+    string name = 4;
+
+    string phone = 5;
+
+    string email = 6;
+
+    string address = 7;
+
+   google.protobuf.Timestamp created_at = 8;
+
+    google.protobuf.Timestamp updated_at = 9;
+
+    optional google.protobuf.Timestamp deleted_at = 10;
+}
+
+message CreateSupplierRequest{
+    string tenant_id = 1;
+
+    string code = 2;
+
+    string name = 3;
+
+    optional string phone = 4;
+
+    optional string email = 5;
+
+    optional string addrees = 6;
+}
+
+message UpdateSupplierRequest{
+    string id = 1;
+
+    optional string tenant_id = 2;
+
+    optional string code = 3;
+
+    optional string name = 4;
+
+    optional string phone = 5;
+
+    optional string email = 6;
+
+    optional string address = 7;
+}
+
+message DeleteSupplierRequest{
+    string id = 1;
+}
+
+message RestoreSupplierRequest{
+    string id = 1;
+}
+
+message ListSupplierRequest{
+    string tenant_id = 1;
+
+    int32 page = 2;
+
+    int32 limit = 3;
+
+    optional string search = 4;
+
+    bool include_deleted= 5;
+}
+
+message GetSupplierRequest {
+    string id = 1;
+}
+
+message GetSupplierByCodeRequest {
+    string code = 1;
+}
+
+message SupplierResponse {
+    Suppliers data = 1;
+}

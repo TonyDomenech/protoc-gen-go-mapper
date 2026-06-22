@@ -99,6 +99,48 @@ func (p *Plugin) Generate(req *GenerateRequest, w io.Writer) error {
 		}
 	}
 
+	// Apply type_conversions to override DB types based on field patterns
+	if len(p.cfg.TypeConversions) > 0 {
+		for _, msg := range model.Messages {
+			for _, field := range msg.Fields {
+				for _, tc := range p.cfg.TypeConversions {
+					// Check if field pattern matches
+					if tc.MatchFieldPattern != "" {
+						lowerFieldName := strings.ToLower(field.Name)
+						matches := false
+						// Simple pattern matching (supports | for OR)
+						patterns := strings.Split(tc.MatchFieldPattern, "|")
+						for _, pattern := range patterns {
+							pattern = strings.TrimSpace(pattern)
+							if strings.Contains(lowerFieldName, pattern) {
+								matches = true
+								break
+							}
+						}
+						if !matches {
+							continue
+						}
+					}
+
+					// Check if proto type matches
+					if tc.ProtoType != "" && tc.ProtoType != field.ProtoType.Name {
+						continue
+					}
+
+					// Check if optional matches
+					if tc.IsOptional != field.ProtoType.IsNullable {
+						continue
+					}
+
+					// Override DB type if specified
+					if tc.DBType != "" {
+						field.DBType.Name = tc.DBType
+					}
+				}
+			}
+		}
+	}
+
 	// Extract package name and import path from go_package option
 	goPackage := req.FileProto.GetOptions().GetGoPackage()
 	packageName := "gen" // default
@@ -157,8 +199,8 @@ func (p *Plugin) Generate(req *GenerateRequest, w io.Writer) error {
 	allCode += ")\n\n"
 
 	// Add helper functions for nullable conversions
-	// Inline generic converters when using generic mode
-	if len(p.cfg.TypeConversions) == 0 {
+	// Always inline generic converters
+	if true {
 		// Add inline generic converter functions
 		allCode += "// Generic converter functions\n"
 		allCode += "func ConvertUUID[T string | *string](v pgtype.UUID) T {\n"
@@ -267,6 +309,10 @@ func (p *Plugin) Generate(req *GenerateRequest, w io.Writer) error {
 		allCode += "\t\treturn pgtype.Text{String: *v, Valid: true}\n"
 		allCode += "\t}\n"
 		allCode += "\treturn pgtype.Text{}\n"
+		allCode += "}\n\n"
+
+		allCode += "func ConvertTextToDBNonPtr(v string) pgtype.Text {\n"
+		allCode += "\treturn pgtype.Text{String: v, Valid: true}\n"
 		allCode += "}\n\n"
 
 		allCode += "func ConvertTimestampToDB(v *timestamppb.Timestamp) pgtype.Timestamptz {\n"
@@ -796,8 +842,8 @@ func (p *Plugin) Generate(req *GenerateRequest, w io.Writer) error {
 			}
 		}
 
-		// Generate code
-		useGenericConverters := len(p.cfg.TypeConversions) == 0
+		// Generate code - always use generic converters
+		useGenericConverters := true
 		code, err := p.generator.Generate(msg, protoToDB, dbToProto, p.cfg.TypeMappings, useGenericConverters)
 		if err != nil {
 			return fmt.Errorf("generating code for %s: %w", msg.Name, err)

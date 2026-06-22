@@ -1,5 +1,105 @@
+# Mapper configuration for protoc-gen-go-mapper
 version: v1
 database: sqlc
+db_package: github.com/jwart212/protoc-gen-go-mapper/examples/simple/db
 package:
   proto: github.com/jwart212/protoc-gen-go-mapper/examples/simple/gen
   db: github.com/jwart212/protoc-gen-go-mapper/examples/simple/db
+type_mappings:
+  User: User
+# Response type mappings for list responses (proto message -> SQLC Row type)
+response_type_mappings:
+  SupplierResponse: SupplierResponse
+# Type aliases for reuse (optional, for custom conversions)
+type_aliases:
+  UUIDField:
+    proto_type: string
+    db_type: pgtype.UUID
+    is_optional: false
+    to_proto_expr: "ConvertUUID[string]({variable}.{dbField})"
+    to_db_expr: "ConvertUUIDToDB({protoField})"
+
+  OptionalUUID:
+    proto_type: string
+    db_type: pgtype.UUID
+    is_optional: true
+    to_proto_expr: "ConvertUUID[*string]({variable}.{dbField})"
+    to_db_expr: "ConvertUUIDPtrToDB({protoField})"
+
+  OptionalText:
+    proto_type: string
+    db_type: pgtype.Text
+    is_optional: true
+    to_proto_expr: "ConvertText[*string]({variable}.{dbField})"
+    to_db_expr: "ConvertTextToDB({protoField})"
+# Type-based field conversions (optional - remove to use generic converters)
+# type_conversions:
+#   # Non-nullable UUID fields with pattern matching
+#   - proto_type: string
+#     db_type: pgtype.UUID
+#     is_optional: false
+#     match_field_pattern: "^.*Id$"
+#     to_proto_expr: "ConvertUUID[string]({variable}.{dbField})"
+#     to_db_expr: "ConvertUUIDToDB({protoField})"
+#     priority: 90
+#
+#   # Optional UUID fields with pattern matching
+#   - proto_type: string
+#     db_type: pgtype.UUID
+#     is_optional: true
+#     match_field_pattern: "parentid|parent_id"
+#     to_proto_expr: "ConvertUUID[*string]({variable}.{dbField})"
+#     to_db_expr: "ConvertUUIDPtrToDB({protoField})"
+#     priority: 90
+#
+#   # Text fields (Description)
+#   - proto_type: string
+#     db_type: pgtype.Text
+#     is_optional: true
+#     to_proto_expr: "ConvertText[*string]({variable}.{dbField})"
+#     to_db_expr: "ConvertTextToDB({protoField})"
+#     priority: 90
+#
+#   # Non-optional timestamp fields (CreatedAt, UpdatedAt)
+#   - proto_type: google.protobuf.Timestamp
+#     db_type: pgtype.Timestamptz
+#     is_optional: false
+#     to_proto_expr: "ConvertTimestamp[*timestamppb.Timestamp]({variable}.{dbField})"
+#     to_db_expr: "ConvertTimestampToDB({protoField})"
+#     priority: 90
+#
+#   # Optional timestamp fields (DeletedAt)
+#   - proto_type: google.protobuf.Timestamp
+#     db_type: pgtype.Timestamptz
+#     is_optional: true
+#     to_proto_expr: "ConvertTimestamp[*timestamppb.Timestamp]({variable}.{dbField})"
+#     to_db_expr: "ConvertTimestampToDB({protoField})"
+#     priority: 90
+# Response field patterns (configurable)
+response_patterns:
+  data_field: "data"
+  total_field: "total"
+  page_field: "page"
+  limit_field: "limit"
+  response_suffix: "Response"
+  skip_fields: ["DeletedAt", "DeletedBy"]
+# Pointer handling strategies (optional)
+pointer_settings:
+  default_strategy: "strict"
+  field_strategies:
+    CreatedAt: "lenient"
+    UpdatedAt: "lenient"
+    DeletedAt: "omit"
+messages:
+  - User
+field_handlers:
+  # Add custom field handlers here if needed
+  # Example: type assertion for specific fields
+  # - name: custom_handler
+  #   type: type_assertion
+  #   match_field: field_name
+  #   match_db_types:
+  #     - TableName
+  #   assert_type: "[]string"
+  #   priority: 50
+

@@ -3,9 +3,11 @@
 package item_categoriespb
 
 import (
-	"github.com/jwart212/protoc-gen-go-mapper/examples/advanced/internal/postgres/sqlc"
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jwart212/protoc-gen-go-mapper/examples/advanced/internal/postgres/sqlc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -47,6 +49,53 @@ func ConvertText[T string | *string](v pgtype.Text) T {
 	return zero
 }
 
+func ConvertStringToNumeric[T int32 | int64 | float64](v string) T {
+	var result T
+	switch any(result).(type) {
+	case int32:
+		var n int32
+		if _, err := fmt.Sscanf(v, "%d", &n); err == nil {
+			result = any(n).(T)
+		}
+	case int64:
+		var n int64
+		if _, err := fmt.Sscanf(v, "%d", &n); err == nil {
+			result = any(n).(T)
+		}
+	case float64:
+		var n float64
+		if _, err := fmt.Sscanf(v, "%f", &n); err == nil {
+			result = any(n).(T)
+		}
+	}
+	return result
+}
+
+func ConvertStringToNumericPtr[T *int32 | *int64 | *float64](v string) T {
+	switch any(T(nil)).(type) {
+	case *int32:
+		var n int32
+		if _, err := fmt.Sscanf(v, "%d", &n); err == nil {
+			return any(&n).(T)
+		}
+		return any((*int32)(nil)).(T)
+	case *int64:
+		var n int64
+		if _, err := fmt.Sscanf(v, "%d", &n); err == nil {
+			return any(&n).(T)
+		}
+		return any((*int64)(nil)).(T)
+	case *float64:
+		var n float64
+		if _, err := fmt.Sscanf(v, "%f", &n); err == nil {
+			return any(&n).(T)
+		}
+		return any((*float64)(nil)).(T)
+	}
+	var zero T
+	return zero
+}
+
 func ConvertUUIDToDB(v string) pgtype.UUID {
 	if u, err := uuid.Parse(v); err == nil {
 		return pgtype.UUID{Bytes: u, Valid: true}
@@ -68,6 +117,10 @@ func ConvertTextToDB(v *string) pgtype.Text {
 		return pgtype.Text{String: *v, Valid: true}
 	}
 	return pgtype.Text{}
+}
+
+func ConvertTextToDBNonPtr(v string) pgtype.Text {
+	return pgtype.Text{String: v, Valid: true}
 }
 
 func ConvertTimestampToDB(v *timestamppb.Timestamp) pgtype.Timestamptz {
@@ -92,20 +145,20 @@ func ToProtoListItemCategoryResponseFromRows(rows []sqlc.ListsItemCategoriesRow,
 	items := make([]*ItemCategory, len(rows))
 	for i, item := range rows {
 		items[i] = &ItemCategory{
-			Id: ConvertUUID[string](item.ID),
-			TenantId: ConvertUUID[string](item.TenantID),
-			ParentId: ConvertUUID[*string](item.ParentID),
-			Code: item.Code,
-			Name: item.Name,
+			Id:          ConvertUUID[string](item.ID),
+			TenantId:    ConvertUUID[string](item.TenantID),
+			ParentId:    ConvertUUID[*string](item.ParentID),
+			Code:        item.Code,
+			Name:        item.Name,
 			Description: ConvertText[*string](item.Description),
-			CreatedAt: ConvertTimestamp[*timestamppb.Timestamp](item.CreatedAt),
-			UpdatedAt: ConvertTimestamp[*timestamppb.Timestamp](item.UpdatedAt),
+			CreatedAt:   ConvertTimestamp[*timestamppb.Timestamp](item.CreatedAt),
+			UpdatedAt:   ConvertTimestamp[*timestamppb.Timestamp](item.UpdatedAt),
 		}
 	}
 	return &ListItemCategoryResponse{
-		Data: items,
+		Data:  items,
 		Total: total,
-		Page: page,
+		Page:  page,
 		Limit: limit,
 	}
 }
@@ -118,17 +171,17 @@ func ToProtoListItemCategoryTreeResponseFromRows(rows []sqlc.ListsItemCategories
 	items := make([]*CategoryTreeNode, len(rows))
 	for i, item := range rows {
 		items[i] = &CategoryTreeNode{
-			Id: ConvertUUID[string](item.ID),
-			TenantId: ConvertUUID[string](item.TenantID),
-			ParentId: ConvertUUID[*string](item.ParentID),
-			Code: item.Code,
-			Name: item.Name,
+			Id:          ConvertUUID[string](item.ID),
+			TenantId:    ConvertUUID[string](item.TenantID),
+			ParentId:    ConvertUUID[*string](item.ParentID),
+			Code:        item.Code,
+			Name:        item.Name,
 			Description: ConvertText[*string](item.Description),
-			Level: item.Level,
-			Path: item.Path.([]string),
-			Children: []*CategoryTreeNode{},
-			CreatedAt: ConvertTimestamp[*timestamppb.Timestamp](item.CreatedAt),
-			UpdatedAt: ConvertTimestamp[*timestamppb.Timestamp](item.UpdatedAt),
+			Level:       item.Level,
+			Path:        item.Path.([]string),
+			Children:    []*CategoryTreeNode{},
+			CreatedAt:   ConvertTimestamp[*timestamppb.Timestamp](item.CreatedAt),
+			UpdatedAt:   ConvertTimestamp[*timestamppb.Timestamp](item.UpdatedAt),
 		}
 	}
 	return &ListItemCategoryTreeResponse{
@@ -138,113 +191,113 @@ func ToProtoListItemCategoryTreeResponseFromRows(rows []sqlc.ListsItemCategories
 
 func ToProtoItemCategory(src sqlc.SchmPosItemCategory) *ItemCategory {
 	return &ItemCategory{
-		Id: ConvertUUID[string](src.ID),
-		TenantId: ConvertUUID[string](src.TenantID),
-		ParentId: ConvertUUID[*string](src.ParentID),
-		Code: src.Code,
-		Name: src.Name,
+		Id:          ConvertUUID[string](src.ID),
+		TenantId:    ConvertUUID[string](src.TenantID),
+		ParentId:    ConvertUUID[*string](src.ParentID),
+		Code:        src.Code,
+		Name:        src.Name,
 		Description: ConvertText[*string](src.Description),
-		CreatedAt: ConvertTimestamp[*timestamppb.Timestamp](src.CreatedAt),
-		UpdatedAt: ConvertTimestamp[*timestamppb.Timestamp](src.UpdatedAt),
-		DeletedAt: ConvertTimestamp[*timestamppb.Timestamp](src.DeletedAt),
-		DeletedBy: ConvertUUID[*string](src.DeletedBy),
+		CreatedAt:   ConvertTimestamp[*timestamppb.Timestamp](src.CreatedAt),
+		UpdatedAt:   ConvertTimestamp[*timestamppb.Timestamp](src.UpdatedAt),
+		DeletedAt:   ConvertTimestamp[*timestamppb.Timestamp](src.DeletedAt),
+		DeletedBy:   ConvertUUID[*string](src.DeletedBy),
 	}
 }
 
 func ToDBItemCategory(src *ItemCategory) sqlc.SchmPosItemCategory {
 	return sqlc.SchmPosItemCategory{
-		ID: ConvertUUIDToDB(src.Id),
-		TenantID: ConvertUUIDToDB(src.TenantId),
-		ParentID: ConvertUUIDPtrToDB(src.ParentId),
-		Code: src.Code,
-		Name: src.Name,
+		ID:          ConvertUUIDToDB(src.Id),
+		TenantID:    ConvertUUIDToDB(src.TenantId),
+		ParentID:    ConvertUUIDPtrToDB(src.ParentId),
+		Code:        src.Code,
+		Name:        src.Name,
 		Description: ConvertTextToDB(src.Description),
-		CreatedAt: ConvertTimestampToDB(src.CreatedAt),
-		UpdatedAt: ConvertTimestampToDB(src.UpdatedAt),
-		DeletedAt: ConvertTimestampToDB(src.DeletedAt),
-		DeletedBy: ConvertUUIDPtrToDB(src.DeletedBy),
+		CreatedAt:   ConvertTimestampToDB(src.CreatedAt),
+		UpdatedAt:   ConvertTimestampToDB(src.UpdatedAt),
+		DeletedAt:   ConvertTimestampToDB(src.DeletedAt),
+		DeletedBy:   ConvertUUIDPtrToDB(src.DeletedBy),
 	}
 }
 func ToProtoCreateItemCategoryRequest(src sqlc.CreateItemCategoriesParams) *CreateItemCategoryRequest {
 	return &CreateItemCategoryRequest{
-		TenantId: ConvertUUID[string](src.TenantID),
-		ParentId: ConvertUUID[*string](src.ParentID),
-		Code: src.Code,
-		Name: src.Name,
+		TenantId:    ConvertUUID[string](src.TenantID),
+		ParentId:    ConvertUUID[*string](src.ParentID),
+		Code:        src.Code,
+		Name:        src.Name,
 		Description: ConvertText[*string](src.Description),
 	}
 }
 
 func ToDBCreateItemCategoryRequest(src *CreateItemCategoryRequest) sqlc.CreateItemCategoriesParams {
 	return sqlc.CreateItemCategoriesParams{
-		TenantID: ConvertUUIDToDB(src.TenantId),
-		ParentID: ConvertUUIDPtrToDB(src.ParentId),
-		Code: src.Code,
-		Name: src.Name,
+		TenantID:    ConvertUUIDToDB(src.TenantId),
+		ParentID:    ConvertUUIDPtrToDB(src.ParentId),
+		Code:        src.Code,
+		Name:        src.Name,
 		Description: ConvertTextToDB(src.Description),
 	}
 }
 func ToProtoUpdateItemCategoryRequest(src sqlc.UpdateItemCategoriesParams) *UpdateItemCategoryRequest {
 	return &UpdateItemCategoryRequest{
-		Id: ConvertUUID[string](src.ID),
-		TenantId: ConvertUUID[*string](src.TenantID),
-		ParentId: ConvertUUID[*string](src.ParentID),
-		Code: ConvertText[*string](src.Code),
-		Name: ConvertText[*string](src.Name),
+		Id:          ConvertUUID[string](src.ID),
+		TenantId:    ConvertUUID[*string](src.TenantID),
+		ParentId:    ConvertUUID[*string](src.ParentID),
+		Code:        ConvertText[*string](src.Code),
+		Name:        ConvertText[*string](src.Name),
 		Description: ConvertText[*string](src.Description),
 	}
 }
 
 func ToDBUpdateItemCategoryRequest(src *UpdateItemCategoryRequest) sqlc.UpdateItemCategoriesParams {
 	return sqlc.UpdateItemCategoriesParams{
-		ID: ConvertUUIDToDB(src.Id),
-		TenantID: ConvertUUIDPtrToDB(src.TenantId),
-		ParentID: ConvertUUIDPtrToDB(src.ParentId),
-		Code: ConvertTextToDB(src.Code),
-		Name: ConvertTextToDB(src.Name),
+		ID:          ConvertUUIDToDB(src.Id),
+		TenantID:    ConvertUUIDPtrToDB(src.TenantId),
+		ParentID:    ConvertUUIDPtrToDB(src.ParentId),
+		Code:        ConvertTextToDB(src.Code),
+		Name:        ConvertTextToDB(src.Name),
 		Description: ConvertTextToDB(src.Description),
 	}
 }
 func ToProtoDeleteItemCategoryRequest(src sqlc.DeleteItemCategoriesParams) *DeleteItemCategoryRequest {
 	return &DeleteItemCategoryRequest{
-		Id: ConvertUUID[string](src.ID),
+		Id:        ConvertUUID[string](src.ID),
 		DeletedBy: ConvertUUID[string](src.DeletedBy),
 	}
 }
 
 func ToDBDeleteItemCategoryRequest(src *DeleteItemCategoryRequest) sqlc.DeleteItemCategoriesParams {
 	return sqlc.DeleteItemCategoriesParams{
-		ID: ConvertUUIDToDB(src.Id),
+		ID:        ConvertUUIDToDB(src.Id),
 		DeletedBy: ConvertUUIDToDB(src.DeletedBy),
 	}
 }
 func ToProtoCategoryTreeNode(src sqlc.ListsItemCategoriesTreeRow) *CategoryTreeNode {
 	return &CategoryTreeNode{
-		Id: ConvertUUID[string](src.ID),
-		TenantId: ConvertUUID[string](src.TenantID),
-		ParentId: ConvertUUID[*string](src.ParentID),
-		Code: src.Code,
-		Name: src.Name,
+		Id:          ConvertUUID[string](src.ID),
+		TenantId:    ConvertUUID[string](src.TenantID),
+		ParentId:    ConvertUUID[*string](src.ParentID),
+		Code:        src.Code,
+		Name:        src.Name,
 		Description: ConvertText[*string](src.Description),
-		Level: src.Level,
-		Path: src.Path.([]string),
-		Children: []*CategoryTreeNode{},
-		CreatedAt: ConvertTimestamp[*timestamppb.Timestamp](src.CreatedAt),
-		UpdatedAt: ConvertTimestamp[*timestamppb.Timestamp](src.UpdatedAt),
+		Level:       src.Level,
+		Path:        src.Path.([]string),
+		Children:    []*CategoryTreeNode{},
+		CreatedAt:   ConvertTimestamp[*timestamppb.Timestamp](src.CreatedAt),
+		UpdatedAt:   ConvertTimestamp[*timestamppb.Timestamp](src.UpdatedAt),
 	}
 }
 
 func ToDBCategoryTreeNode(src *CategoryTreeNode) sqlc.ListsItemCategoriesTreeRow {
 	return sqlc.ListsItemCategoriesTreeRow{
-		ID: ConvertUUIDToDB(src.Id),
-		TenantID: ConvertUUIDToDB(src.TenantId),
-		ParentID: ConvertUUIDPtrToDB(src.ParentId),
-		Code: src.Code,
-		Name: src.Name,
+		ID:          ConvertUUIDToDB(src.Id),
+		TenantID:    ConvertUUIDToDB(src.TenantId),
+		ParentID:    ConvertUUIDPtrToDB(src.ParentId),
+		Code:        src.Code,
+		Name:        src.Name,
 		Description: ConvertTextToDB(src.Description),
-		Level: src.Level,
-		Path: src.Path,
-		CreatedAt: ConvertTimestampToDB(src.CreatedAt),
-		UpdatedAt: ConvertTimestampToDB(src.UpdatedAt),
+		Level:       src.Level,
+		Path:        src.Path,
+		CreatedAt:   ConvertTimestampToDB(src.CreatedAt),
+		UpdatedAt:   ConvertTimestampToDB(src.UpdatedAt),
 	}
 }

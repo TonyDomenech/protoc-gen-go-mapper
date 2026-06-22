@@ -101,21 +101,27 @@ func (r *Resolver) resolveSQLC(protoType types.TypeInfo, isIDField bool) types.T
 	// Handle nullable types for SQLC
 	// Only convert to nullable if the proto type is explicitly marked as optional
 	// Skip for ID fields (already handled above)
-	if protoType.Kind == types.KindScalar && !protoType.IsSlice && protoType.IsNullable && !isIDField {
+	if protoType.Kind == types.KindScalar && !protoType.IsSlice && !isIDField {
 		// Map scalar types to nullable types for SQLC
 		switch protoType.Name {
 		case "int32", "int64", "int":
-			dbType.Kind = types.KindNullable
-			dbType.Name = "pgtype.Int8"
+			if protoType.IsNullable {
+				dbType.Kind = types.KindNullable
+				dbType.Name = "pgtype.Int8"
+			}
 		case "bool":
-			dbType.Kind = types.KindNullable
-			dbType.Name = "pgtype.Bool"
+			if protoType.IsNullable {
+				dbType.Kind = types.KindNullable
+				dbType.Name = "pgtype.Bool"
+			}
 		case "string":
-			dbType.Kind = types.KindNullable
-			dbType.Name = "pgtype.Text"
+			// Keep as string by default - only convert to pgtype.Text for specific fields
+			// This is handled by type_conversions in mapper.yaml with field pattern matching
 		case "float64":
-			dbType.Kind = types.KindNullable
-			dbType.Name = "pgtype.Numeric"
+			if protoType.IsNullable {
+				dbType.Kind = types.KindNullable
+				dbType.Name = "pgtype.Numeric"
+			}
 		}
 	}
 
